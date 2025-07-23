@@ -1,5 +1,6 @@
-// Lightweight video compression using Canvas API for basic operations
-// FFmpeg.wasm is too resource-intensive for browser environments
+import { CompressionStrategyFactory } from './compressionStrategies';
+import { PerformanceMonitor } from './performanceMonitor';
+import { VideoAnalyzer } from './videoAnalyzer';
 
 export const compressVideo = async (
   file: File,
@@ -13,46 +14,53 @@ export const compressVideo = async (
   onProgress: (progress: number) => void
 ): Promise<File> => {
   try {
-    onProgress(10);
+    console.log('Starting advanced video compression for:', file.name);
     
-    // For demo purposes, we'll simulate video compression
-    // In a real implementation, you'd need a server-side solution or WebCodecs API
-    console.log('Video compression started for:', file.name);
+    // Analyze video to determine best compression method
+    const analysis = await VideoAnalyzer.analyzeVideo(file);
+    const methods = PerformanceMonitor.getCompressionMethods(file.size, analysis.duration);
     
-    // Simulate processing time
-    const simulateProgress = async () => {
-      for (let i = 10; i <= 90; i += 10) {
-        await new Promise(resolve => setTimeout(resolve, 200));
-        onProgress(i);
+    // Select best available method
+    const capabilities = PerformanceMonitor.checkSystemCapabilities();
+    const selectedMethod = methods.find(m => m.id === capabilities.recommendedMethod) || methods[0];
+    
+    if (!selectedMethod) {
+      throw new Error('No suitable compression method available');
+    }
+    
+    console.log(`Using compression method: ${selectedMethod.name}`);
+    
+    // Create compressor with progress tracking
+    const compressor = CompressionStrategyFactory.createCompressor(
+      selectedMethod.id,
+      (progress) => {
+        onProgress(progress.progress);
       }
-    };
-    
-    await simulateProgress();
-    
-    // Create a "compressed" version (for demo - just rename the file)
-    const compressedFile = new File([file], 
-      file.name.replace(/\.[^/.]+$/, '_compressed.mp4'),
-      { type: 'video/mp4' }
     );
     
-    onProgress(100);
-    console.log('Video compression completed (simulated)');
+    // Compress the video
+    const compressedFile = await compressor.compress(file, settings);
+    
+    console.log('Video compression completed:', {
+      originalSize: file.size,
+      compressedSize: compressedFile.size,
+      compressionRatio: ((file.size - compressedFile.size) / file.size * 100).toFixed(1) + '%'
+    });
     
     return compressedFile;
+    
   } catch (error) {
     console.error('Video compression error:', error);
-    throw new Error('Video compression is not available in this environment. Please use a desktop application for video compression.');
+    throw new Error(`Video compression failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 };
 
-// Utility function to estimate processing time
+// Utility functions
 export const estimateProcessingTime = (fileSizeBytes: number, settings: any): number => {
-  const fileSizeMB = fileSizeBytes / (1024 * 1024);
-  return Math.max(5, Math.round(fileSizeMB * 0.5)); // Much faster estimate
+  return PerformanceMonitor.estimateProcessingTime(fileSizeBytes, 0, 'canvas');
 };
 
-// Initialize function (no-op for this implementation)
 export const initializeFFmpeg = async () => {
-  console.log('Using lightweight video processing');
+  console.log('FFmpeg initialization handled by compression strategies');
   return Promise.resolve();
 };

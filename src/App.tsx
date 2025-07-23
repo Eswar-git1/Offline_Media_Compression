@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { Header } from './components/Header';
 import { FileUploader } from './components/FileUploader';
 import { CompressionSettings } from './components/CompressionSettings';
-import { VideoCompressionNotice } from './components/VideoCompressionNotice';
+import { VideoProcessor } from './components/VideoProcessor';
 import { ProgressBar } from './components/ProgressBar';
 import { ResultsDisplay } from './components/ResultsDisplay';
 import { FileItem, CompressionSettings as Settings } from './types';
@@ -117,7 +117,7 @@ function App() {
 
   const startCompression = async () => {
     setIsProcessing(true);
-    const pendingFiles = files.filter(file => file.status === 'pending');
+    const pendingFiles = files.filter(file => file.status === 'pending' && file.type !== 'video');
     
     for (const file of pendingFiles) {
       await compressFile(file);
@@ -144,8 +144,6 @@ function App() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - File Upload and Settings */}
           <div className="lg:col-span-2 space-y-8">
-            {hasVideoFiles && <VideoCompressionNotice />}
-            
             <FileUploader
               files={files}
               onFilesAdd={handleFilesAdd}
@@ -159,14 +157,31 @@ function App() {
               onTabChange={setActiveTab}
             />
 
+            {/* Video Processing Section */}
+            {hasVideoFiles && (
+              <div className="space-y-4">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  Video Processing
+                </h2>
+                {files.filter(f => f.type === 'video').map(file => (
+                  <VideoProcessor
+                    key={file.id}
+                    file={file}
+                    settings={settings.video}
+                    onProgress={updateFileProgress}
+                  />
+                ))}
+              </div>
+            )}
+
             {/* Action Buttons */}
-            {files.length > 0 && (
+            {files.filter(f => f.type !== 'video').length > 0 && (
               <div className="flex items-center space-x-4">
                 <button
                   onClick={startCompression}
-                  disabled={isProcessing || pendingFiles.length === 0}
+                  disabled={isProcessing || pendingFiles.filter(f => f.type !== 'video').length === 0}
                   className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-medium transition-colors ${
-                    isProcessing || pendingFiles.length === 0
+                    isProcessing || pendingFiles.filter(f => f.type !== 'video').length === 0
                       ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
                       : 'bg-blue-600 hover:bg-blue-700 text-white'
                   }`}
@@ -179,7 +194,7 @@ function App() {
                   ) : (
                     <>
                       <Play className="w-5 h-5" />
-                      <span>Start Compression ({pendingFiles.length})</span>
+                      <span>Compress Images & PDFs ({pendingFiles.filter(f => f.type !== 'video').length})</span>
                     </>
                   )}
                 </button>
