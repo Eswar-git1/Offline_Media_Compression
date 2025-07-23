@@ -13,10 +13,10 @@ import { Play, Pause, RotateCcw } from 'lucide-react';
 
 const defaultSettings: Settings = {
   video: {
-    quality: 70,
+    quality: 50, // Lower default for better compression
     resolution: '1920x1080',
-    bitrate: 4000,
-    fps: 30,
+    bitrate: 1500, // Lower default bitrate
+    fps: 24, // Lower default FPS
     codec: 'h264'
   },
   image: {

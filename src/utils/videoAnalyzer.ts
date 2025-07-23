@@ -37,27 +37,31 @@ export class VideoAnalyzer {
     let targetWidth = width;
     let targetHeight = height;
     
+    // More aggressive scaling for better compression
     if (width > 1920) {
       targetWidth = 1920;
       targetHeight = Math.round((height * 1920) / width);
-    } else if (width > 1280 && duration > 600) { // Long videos get more compression
+    } else if (width > 1280) {
       targetWidth = 1280;
       targetHeight = Math.round((height * 1280) / width);
+    } else if (width > 854 && duration > 300) { // Videos longer than 5 min get more compression
+      targetWidth = 854;
+      targetHeight = Math.round((height * 854) / width);
     }
     
-    // Smart bitrate calculation
+    // More aggressive bitrate calculation for better compression
     const targetBitrate = Math.min(
-      bitrate * 0.7, // 70% of original
-      targetWidth > 1280 ? 4000000 : 2000000 // Max 4Mbps for HD, 2Mbps for lower
+      bitrate * 0.4, // 40% of original for better compression
+      targetWidth > 1280 ? 2500000 : targetWidth > 854 ? 1500000 : 800000
     );
     
     return {
       targetWidth,
       targetHeight,
       targetBitrate,
-      targetFps: Math.min(30, analysis.fps),
+      targetFps: Math.min(24, analysis.fps), // Lower FPS for better compression
       quality: 0.8,
-      removeThreshold: 0.95 // 95% similarity threshold for duplicate frames
+      removeThreshold: 0.90 // 90% similarity threshold for more aggressive duplicate removal
     };
   }
 }

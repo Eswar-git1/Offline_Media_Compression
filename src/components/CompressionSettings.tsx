@@ -146,6 +146,12 @@ export const CompressionSettings: React.FC<CompressionSettingsProps> = ({
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Quality: {settings.video.quality}%
             </label>
+            <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+              {settings.video.quality >= 80 ? 'High Quality (minimal compression)' :
+               settings.video.quality >= 60 ? 'Balanced (good compression)' :
+               settings.video.quality >= 40 ? 'High Compression (smaller files)' :
+               'Maximum Compression (smallest files)'}
+            </div>
             <input
               type="range"
               min="10"
@@ -169,6 +175,7 @@ export const CompressionSettings: React.FC<CompressionSettingsProps> = ({
               <option value="1920x1080">1080p (1920x1080)</option>
               <option value="1280x720">720p (1280x720)</option>
               <option value="854x480">480p (854x480)</option>
+              <option value="640x360">360p (640x360) - High Compression</option>
             </select>
           </div>
 
@@ -176,9 +183,12 @@ export const CompressionSettings: React.FC<CompressionSettingsProps> = ({
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Bitrate: {settings.video.bitrate}k
             </label>
+            <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+              Lower bitrate = smaller file size
+            </div>
             <input
               type="range"
-              min="500"
+              min="200"
               max="10000"
               step="100"
               value={settings.video.bitrate}
@@ -191,6 +201,9 @@ export const CompressionSettings: React.FC<CompressionSettingsProps> = ({
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Frame Rate: {settings.video.fps} fps
             </label>
+            <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+              Lower frame rate = better compression
+            </div>
             <input
               type="range"
               min="15"
@@ -203,7 +216,7 @@ export const CompressionSettings: React.FC<CompressionSettingsProps> = ({
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Codec (for reference only)
+              Codec
             </label>
             <select
               value={settings.video.codec}
@@ -213,9 +226,21 @@ export const CompressionSettings: React.FC<CompressionSettingsProps> = ({
               <option value="h264">H.264 (Most compatible)</option>
               <option value="h265">H.265 (Better compression)</option>
             </select>
-            <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-1">
-              Browser video compression is limited. Settings are for reference only.
+            <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+              Output format will match your input file format when possible.
             </p>
+          </div>
+          
+          <div className="p-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+            <h4 className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-1">
+              Compression Tips:
+            </h4>
+            <ul className="text-xs text-blue-700 dark:text-blue-300 space-y-1">
+              <li>• Lower quality settings provide much better compression</li>
+              <li>• Reducing resolution significantly decreases file size</li>
+              <li>• Lower frame rates help with compression</li>
+              <li>• The app removes duplicate frames automatically</li>
+            </ul>
           </div>
         </div>
       )}

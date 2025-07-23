@@ -9,7 +9,7 @@ export class FrameComparator {
   static compareFrames(
     canvas1: HTMLCanvasElement, 
     canvas2: HTMLCanvasElement,
-    threshold: number = 0.95
+    threshold: number = 0.90
   ): FrameComparisonResult {
     const data1 = this.getImageData(canvas1);
     const data2 = this.getImageData(canvas2);
@@ -21,8 +21,8 @@ export class FrameComparator {
     let matchingPixels = 0;
     const totalPixels = data1.data.length / 4; // RGBA = 4 values per pixel
     
-    // Compare every 4th pixel for performance (sampling)
-    for (let i = 0; i < data1.data.length; i += 16) { // Skip 4 pixels at a time
+    // More thorough comparison for better duplicate detection
+    for (let i = 0; i < data1.data.length; i += 8) { // Skip 2 pixels at a time
       const r1 = data1.data[i];
       const g1 = data1.data[i + 1];
       const b1 = data1.data[i + 2];
@@ -38,12 +38,12 @@ export class FrameComparator {
         Math.pow(b1 - b2, 2)
       );
       
-      if (diff < 30) { // Threshold for "similar" pixels
+      if (diff < 40) { // More lenient threshold for "similar" pixels
         matchingPixels++;
       }
     }
     
-    const similarity = matchingPixels / (totalPixels / 4);
+    const similarity = matchingPixels / (totalPixels / 2);
     const isDuplicate = similarity >= threshold;
     
     return {
